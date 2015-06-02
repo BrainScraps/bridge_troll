@@ -3,6 +3,8 @@ require 'rails_helper'
 describe "New Event" do
   before do
     @user_organizer = create(:user, email: "organizer@mail.com", first_name: "Sam", last_name: "Spade")
+    3.times { create(:location) }
+    @archived = Location.last.tap { |l| l.archive! }
 
     sign_in_as(@user_organizer)
 
@@ -17,7 +19,7 @@ describe "New Event" do
   it "should have a public organizer email field" do
     label = "What email address should users contact you at with questions?"
     page.should have_field(label)
-    page.field_labeled(label)[:value].should == "organizer@mail.com" 
+    page.field_labeled(label)[:value].should == "organizer@mail.com"
   end
 
   it "should have 'Volunteer Details'" do
@@ -30,6 +32,13 @@ describe "New Event" do
 
   it "should have the code of conduct checkbox checked" do
     page.should have_unchecked_field("coc")
+  end
+
+  it "should have appropriate locations available" do
+    available_location = Location.available.first.name_with_chapter
+
+    page.should have_select('event_location_id', :with_options => [available_location])
+    page.should_not have_select('event_location_id', :with_options => [@archived.name_with_chapter])
   end
 
   it 'allows organizers to specify a whitelist of allowed OSes', js: true do
