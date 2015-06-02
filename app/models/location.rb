@@ -21,19 +21,31 @@ class Location < ActiveRecord::Base
   def editable_by?(user)
     return true if events_count == 0
     return true if user.admin?
-
-    published_events = events
-    notable_events = if published_events.present?
-      published_events
-    else
-      Event.where(location_id: id, published: false)
-    end
-
     notable_events.map { |e| e.organizers }.flatten.map(&:id).include?(user.id)
   end
 
   def additional_details_editable_by?(user)
     chapter && chapter.has_leader?(user)
+  end
+
+  def organized_event?(user)
+    notable_events.map { |e| e.organizer?(user) }.include?(true)
+  end
+
+  def notable_events
+    if events.present?
+      events
+    else
+      Event.where(location_id: id, published: false)
+    end
+  end
+
+  def archive!
+    update_columns(archived_at: DateTime.now)
+  end
+
+  def archived?
+    archived_at.present?
   end
 
   def as_json(options = {})
