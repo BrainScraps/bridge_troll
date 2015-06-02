@@ -58,13 +58,40 @@ describe Location do
   end
 
   describe "#archivable_by?" do
+    let(:organizer_rsvp) { create(:organizer_rsvp)}
+    let(:event) { organizer_rsvp.event }
+    let(:location) { event.location }
+    let(:organizer) { organizer_rsvp.user }
+    let(:user) { create(:user) }
+    let(:admin) { create(:admin) }
+
     context "with an admin" do
+      it "should be archivable" do
+        location.archivable_by?(admin).should be true
+      end
     end
 
+
     context "by a chapter leader" do
+      before do
+        location.chapter.chapter_leaderships.create(user: user)
+      end
+
+      it "should be archivable" do
+        location.archivable_by?(user).should be true
+      end
     end
 
     context "by someone who has organized an event at the given location" do
+      it "should be archivable" do
+          location.archivable_by?(organizer).should be true
+      end
+    end
+
+    context "by a normal user" do
+      it "should not be archivable" do
+          location.archivable_by?(user).should be false
+      end
     end
   end
 
@@ -98,8 +125,6 @@ describe Location do
     it "returns true for a user that organized an event at this location" do
       location.organized_event?(organizer).should be true
     end
-
-
 
     it "returns false for a user that has not organized an event at this location" do
       location.organized_event?(user).should be false

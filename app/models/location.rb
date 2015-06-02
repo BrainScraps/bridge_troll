@@ -1,6 +1,7 @@
 class Location < ActiveRecord::Base
   PERMITTED_ATTRIBUTES = [:name, :address_1, :address_2, :city, :state, :zip, :chapter_id]
 
+  scope :available, -> { where(archived_at: nil) }
   has_many :events, -> { where published: true }
   belongs_to :chapter, counter_cache: true
 
@@ -26,6 +27,10 @@ class Location < ActiveRecord::Base
 
   def additional_details_editable_by?(user)
     chapter && chapter.has_leader?(user)
+  end
+
+  def archivable_by?(user)
+    editable_by?(user) || additional_details_editable_by?(user)
   end
 
   def organized_event?(user)

@@ -72,7 +72,4 @@ class User < ActiveRecord::Base
     event_attendances.fetch(event.id, {})[:role]
   end
 
-  def organized_event_at(location)
-    
-  end
 end
